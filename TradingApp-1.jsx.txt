@@ -1,0 +1,1043 @@
+import React, { useState, useEffect, useMemo } from "react";
+import {
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  ResponsiveContainer,
+} from "recharts";
+import {
+  Globe2,
+  TrendingUp,
+  BarChart3,
+  Landmark,
+  Wallet,
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  Send,
+  Search,
+  X,
+} from "lucide-react";
+
+/* ---------------------------------------------------------
+   THEME
+--------------------------------------------------------- */
+const COLORS = {
+  bg: "#0B0E14",
+  surface: "#161B26",
+  surface2: "#1E2533",
+  border: "#272F40",
+  text: "#F2EEE3",
+  muted: "#8B93A7",
+  gold: "#D8B16A",
+  jade: "#3ECF8E",
+  coral: "#FF6B6B",
+};
+
+const USDIDR = 16250;
+
+const FontStyles = () => (
+  <style>{`
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+    .font-display { font-family: 'Space Grotesk', sans-serif; }
+    .font-body { font-family: 'Inter', sans-serif; }
+    .font-mono { font-family: 'IBM Plex Mono', monospace; }
+    @keyframes ticker-scroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    .ticker-track {
+      animation: ticker-scroll 38s linear infinite;
+      display: flex;
+      width: max-content;
+    }
+    ::-webkit-scrollbar { width: 0px; height: 0px; }
+  `}</style>
+);
+
+/* ---------------------------------------------------------
+   MOCK DATA
+--------------------------------------------------------- */
+function genSeries(base, vol, n = 24) {
+  let v = base;
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    v = v + (Math.random() - 0.5) * vol;
+    out.push({ x: i, y: Math.max(v, base * 0.4) });
+  }
+  return out;
+}
+
+const CRYPTO = [
+  { symbol: "BTC", name: "Bitcoin", price: 1654320000, change: 2.41 },
+  { symbol: "ETH", name: "Ethereum", price: 58230000, change: -1.12 },
+  { symbol: "BNB", name: "BNB", price: 9870000, change: 0.85 },
+  { symbol: "SOL", name: "Solana", price: 2430000, change: 4.63 },
+  { symbol: "USDT", name: "Tether", price: 16250, change: 0.01 },
+].map((a) => ({ ...a, data: genSeries(a.price, a.price * 0.02) }));
+
+const FOREX = [
+  { symbol: "USD/IDR", name: "Dolar AS - Rupiah", price: 16250, change: 0.32 },
+  { symbol: "EUR/USD", name: "Euro - Dolar AS", price: 1.0825, change: -0.18 },
+  { symbol: "GBP/USD", name: "Pound - Dolar AS", price: 1.271, change: 0.24 },
+  { symbol: "JPY/IDR", name: "Yen - Rupiah", price: 103.4, change: -0.6 },
+  { symbol: "AUD/USD", name: "Dolar Aus - Dolar AS", price: 0.658, change: 0.41 },
+].map((a) => ({ ...a, data: genSeries(a.price, a.price * 0.015) }));
+
+const GLOBAL_STOCKS = [
+  { symbol: "AAPL", name: "Apple Inc.", price: 195.4, change: 1.2 },
+  { symbol: "TSLA", name: "Tesla Inc.", price: 248.5, change: -2.3 },
+  { symbol: "MSFT", name: "Microsoft Corp.", price: 412.1, change: 0.6 },
+  { symbol: "NVDA", name: "NVIDIA Corp.", price: 121.8, change: 3.1 },
+  { symbol: "AMZN", name: "Amazon.com", price: 186.2, change: 0.9 },
+].map((a) => ({ ...a, data: genSeries(a.price, a.price * 0.02) }));
+
+const IDX_STOCKS = [
+  { symbol: "BBCA", name: "Bank Central Asia", price: 9850, change: 0.51 },
+  { symbol: "BBRI", name: "Bank Rakyat Indonesia", price: 4320, change: -0.46 },
+  { symbol: "TLKM", name: "Telkom Indonesia", price: 2980, change: 1.02 },
+  { symbol: "ASII", name: "Astra International", price: 5125, change: 0.39 },
+  { symbol: "BMRI", name: "Bank Mandiri", price: 5950, change: -0.84 },
+  { symbol: "UNVR", name: "Unilever Indonesia", price: 3450, change: 0.29 },
+].map((a) => ({ ...a, data: genSeries(a.price, a.price * 0.015) }));
+
+/* ---------------------------------------------------------
+   HELPERS
+--------------------------------------------------------- */
+const fmtIDR = (n) => "Rp" + Math.round(n).toLocaleString("id-ID");
+
+function priceIDR(group, asset) {
+  if (group === "crypto" || group === "idx") return asset.price;
+  if (group === "forex")
+    return asset.symbol.endsWith("IDR") ? asset.price : asset.price * USDIDR;
+  if (group === "stocks") return asset.price * USDIDR;
+  return asset.price;
+}
+
+function formatPrice(asset, group) {
+  if (group === "forex" && !asset.symbol.endsWith("IDR"))
+    return asset.price.toFixed(4);
+  if (group === "stocks") return "$" + asset.price.toFixed(2);
+  return fmtIDR(priceIDR(group, asset));
+}
+
+/* ---------------------------------------------------------
+   SMALL UI PIECES
+--------------------------------------------------------- */
+function AssetRow({ asset, group, onClick }) {
+  const positive = asset.change >= 0;
+  return (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center gap-3 px-4 py-3 text-left active:opacity-80"
+      style={{ borderBottom: `1px solid ${COLORS.border}` }}
+    >
+      <div
+        className="w-10 h-10 rounded-full flex items-center justify-center font-display text-xs font-semibold flex-shrink-0"
+        style={{ background: COLORS.surface2, color: COLORS.gold }}
+      >
+        {asset.symbol.slice(0, 3)}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="font-display text-sm font-semibold" style={{ color: COLORS.text }}>
+          {asset.symbol}
+        </div>
+        <div className="text-xs font-body truncate" style={{ color: COLORS.muted }}>
+          {asset.name}
+        </div>
+      </div>
+      <div className="w-14 h-8 flex-shrink-0">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={asset.data}>
+            <Line
+              type="monotone"
+              dataKey="y"
+              stroke={positive ? COLORS.jade : COLORS.coral}
+              dot={false}
+              strokeWidth={1.5}
+              isAnimationActive={false}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="text-right flex-shrink-0 w-24">
+        <div className="font-mono text-sm" style={{ color: COLORS.text }}>
+          {formatPrice(asset, group)}
+        </div>
+        <div
+          className="font-mono text-xs"
+          style={{ color: positive ? COLORS.jade : COLORS.coral }}
+        >
+          {positive ? "+" : ""}
+          {asset.change.toFixed(2)}%
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function SectionHeader({ title, desc }) {
+  return (
+    <div className="px-4 pt-4 pb-2">
+      <h2 className="font-display text-lg font-semibold" style={{ color: COLORS.text }}>
+        {title}
+      </h2>
+      {desc && (
+        <p className="text-xs font-body mt-1" style={{ color: COLORS.muted }}>
+          {desc}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function AmountInput({ value, onChange, placeholder }) {
+  return (
+    <div
+      className="flex items-center gap-2 rounded-xl px-3 py-2.5"
+      style={{ background: COLORS.surface2, border: `1px solid ${COLORS.border}` }}
+    >
+      <span className="font-mono text-sm" style={{ color: COLORS.muted }}>
+        Rp
+      </span>
+      <input
+        type="text"
+        inputMode="numeric"
+        value={value ? value.toLocaleString("id-ID") : ""}
+        onChange={(e) => {
+          const digits = e.target.value.replace(/\D/g, "");
+          onChange(digits ? parseInt(digits, 10) : 0);
+        }}
+        placeholder={placeholder || "0"}
+        className="bg-transparent outline-none flex-1 font-mono text-sm"
+        style={{ color: COLORS.text }}
+      />
+    </div>
+  );
+}
+
+function TextInput({ value, onChange, placeholder }) {
+  return (
+    <input
+      type="text"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className="w-full rounded-xl px-3 py-2.5 bg-transparent outline-none font-body text-sm"
+      style={{ background: COLORS.surface2, border: `1px solid ${COLORS.border}`, color: COLORS.text }}
+    />
+  );
+}
+
+function PrimaryButton({ children, onClick, disabled, color }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="w-full rounded-xl py-3 font-display text-sm font-semibold transition-opacity"
+      style={{
+        background: disabled ? COLORS.surface2 : color || COLORS.gold,
+        color: disabled ? COLORS.muted : "#11151E",
+        opacity: disabled ? 0.6 : 1,
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+/* ---------------------------------------------------------
+   TICKER TAPE (signature element)
+--------------------------------------------------------- */
+const TICKER_ITEMS = [
+  ...CRYPTO.map((a) => ({ ...a, group: "crypto" })),
+  ...FOREX.map((a) => ({ ...a, group: "forex" })),
+  ...IDX_STOCKS.map((a) => ({ ...a, group: "idx" })),
+];
+
+function TickerTape({ tick }) {
+  const renderItems = (items) =>
+    items.map((a, i) => {
+      const wiggle = Math.sin((tick + i) * 0.7) * 0.12;
+      const change = a.change + wiggle;
+      const positive = change >= 0;
+      return (
+        <div key={a.symbol + i} className="flex items-center gap-2 px-4 whitespace-nowrap">
+          <span className="font-display text-xs font-semibold" style={{ color: COLORS.text }}>
+            {a.symbol}
+          </span>
+          <span className="font-mono text-xs" style={{ color: COLORS.muted }}>
+            {formatPrice(a, a.group)}
+          </span>
+          <span
+            className="font-mono text-xs font-medium"
+            style={{ color: positive ? COLORS.jade : COLORS.coral }}
+          >
+            {positive ? "+" : ""}
+            {change.toFixed(2)}%
+          </span>
+        </div>
+      );
+    });
+
+  return (
+    <div
+      className="overflow-hidden py-2"
+      style={{ background: COLORS.surface, borderBottom: `1px solid ${COLORS.border}` }}
+    >
+      <div className="ticker-track">
+        <div className="flex">{renderItems(TICKER_ITEMS)}</div>
+        <div className="flex">{renderItems(TICKER_ITEMS)}</div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------
+   HEADER
+--------------------------------------------------------- */
+function Header({ totalAsset, onWallet }) {
+  return (
+    <div className="px-4 pt-4 pb-3 flex items-center justify-between" style={{ background: COLORS.bg }}>
+      <div>
+        <div className="font-display text-lg font-bold tracking-tight" style={{ color: COLORS.gold }}>
+          ByanTrade
+        </div>
+        <div className="text-[11px] font-body" style={{ color: COLORS.muted }}>
+          Pasar global dalam genggaman
+        </div>
+      </div>
+      <button
+        onClick={onWallet}
+        className="text-right rounded-xl px-3 py-2"
+        style={{ background: COLORS.surface, border: `1px solid ${COLORS.border}` }}
+      >
+        <div className="text-[10px] font-body" style={{ color: COLORS.muted }}>
+          Total Aset
+        </div>
+        <div className="font-mono text-sm font-semibold" style={{ color: COLORS.text }}>
+          {fmtIDR(totalAsset)}
+        </div>
+      </button>
+    </div>
+  );
+}
+
+function DemoBanner() {
+  return (
+    <div
+      className="px-4 py-1.5 text-center text-[11px] font-body"
+      style={{ background: COLORS.surface2, color: COLORS.muted }}
+    >
+      Mode demo — semua harga, saldo &amp; transaksi bersifat simulasi
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------
+   TRADE MODAL
+--------------------------------------------------------- */
+function TradeModal({ asset, group, onClose, balance, setBalance, holdings, setHoldings, addHistory }) {
+  const [amount, setAmount] = useState(0);
+  const [msg, setMsg] = useState("");
+
+  const unitIDR = priceIDR(group, asset);
+  const key = `${group}:${asset.symbol}`;
+  const heldQty = holdings[key]?.qty || 0;
+  const heldValueIDR = heldQty * unitIDR;
+  const positive = asset.change >= 0;
+  const estQty = amount > 0 ? amount / unitIDR : 0;
+
+  const handleBuy = () => {
+    if (amount <= 0 || amount > balance) return;
+    setBalance((b) => b - amount);
+    setHoldings((h) => ({
+      ...h,
+      [key]: { qty: (h[key]?.qty || 0) + amount / unitIDR, symbol: asset.symbol, name: asset.name, group },
+    }));
+    addHistory({ type: "trade", desc: `Beli ${asset.symbol}`, amount: -amount });
+    setMsg(`Pembelian ${asset.symbol} berhasil (simulasi).`);
+    setTimeout(onClose, 900);
+  };
+
+  const handleSell = () => {
+    const sellAmt = Math.min(amount, heldValueIDR);
+    if (sellAmt <= 0) return;
+    setBalance((b) => b + sellAmt);
+    setHoldings((h) => ({
+      ...h,
+      [key]: { ...h[key], qty: Math.max(0, (h[key]?.qty || 0) - sellAmt / unitIDR) },
+    }));
+    addHistory({ type: "trade", desc: `Jual ${asset.symbol}`, amount: sellAmt });
+    setMsg(`Penjualan ${asset.symbol} berhasil (simulasi).`);
+    setTimeout(onClose, 900);
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center"
+      style={{ background: "rgba(0,0,0,0.6)" }}
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded-t-2xl p-5 pb-7 max-h-[88vh] overflow-y-auto"
+        style={{ background: COLORS.surface }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <div className="font-display text-lg font-semibold" style={{ color: COLORS.text }}>
+              {asset.symbol}
+            </div>
+            <div className="text-xs font-body" style={{ color: COLORS.muted }}>
+              {asset.name}
+            </div>
+          </div>
+          <button onClick={onClose} style={{ color: COLORS.muted }}>
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="h-32 -mx-2 mb-3">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={asset.data}>
+              <defs>
+                <linearGradient id="modalGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={positive ? COLORS.jade : COLORS.coral} stopOpacity={0.35} />
+                  <stop offset="100%" stopColor={positive ? COLORS.jade : COLORS.coral} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <Area
+                type="monotone"
+                dataKey="y"
+                stroke={positive ? COLORS.jade : COLORS.coral}
+                fill="url(#modalGrad)"
+                strokeWidth={2}
+                isAnimationActive={false}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <div className="font-mono text-xl font-semibold" style={{ color: COLORS.text }}>
+              {formatPrice(asset, group)}
+            </div>
+            {(group === "forex" && !asset.symbol.endsWith("IDR")) || group === "stocks" ? (
+              <div className="text-xs font-mono" style={{ color: COLORS.muted }}>
+                ≈ {fmtIDR(unitIDR)}
+              </div>
+            ) : null}
+          </div>
+          <div
+            className="font-mono text-sm font-medium px-2 py-1 rounded-lg"
+            style={{
+              color: positive ? COLORS.jade : COLORS.coral,
+              background: COLORS.surface2,
+            }}
+          >
+            {positive ? "+" : ""}
+            {asset.change.toFixed(2)}%
+          </div>
+        </div>
+
+        {heldQty > 0.000001 && (
+          <div
+            className="flex justify-between text-xs font-mono mb-3 px-3 py-2 rounded-xl"
+            style={{ background: COLORS.surface2, color: COLORS.muted }}
+          >
+            <span>Dimiliki: {heldQty.toFixed(6)} {asset.symbol}</span>
+            <span>≈ {fmtIDR(heldValueIDR)}</span>
+          </div>
+        )}
+
+        <div className="mb-2">
+          <div className="text-xs font-body mb-1" style={{ color: COLORS.muted }}>
+            Jumlah (Rupiah)
+          </div>
+          <AmountInput value={amount} onChange={setAmount} />
+          {estQty > 0 && (
+            <div className="text-xs font-mono mt-1" style={{ color: COLORS.muted }}>
+              ≈ {estQty.toFixed(6)} {asset.symbol}
+            </div>
+          )}
+        </div>
+
+        {msg && (
+          <div className="text-xs font-body mb-2" style={{ color: COLORS.jade }}>
+            {msg}
+          </div>
+        )}
+
+        <div className="flex gap-3 mt-3">
+          <PrimaryButton onClick={handleSell} disabled={heldValueIDR <= 0 || amount <= 0} color={COLORS.coral}>
+            Jual
+          </PrimaryButton>
+          <PrimaryButton onClick={handleBuy} disabled={amount <= 0 || amount > balance} color={COLORS.jade}>
+            Beli
+          </PrimaryButton>
+        </div>
+        <div className="text-center text-xs font-mono mt-2" style={{ color: COLORS.muted }}>
+          Saldo tersedia: {fmtIDR(balance)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------
+   TABS: MARKET / FOREX / SAHAM / INVESTASI
+--------------------------------------------------------- */
+function MarketTab({ onSelect }) {
+  const [q, setQ] = useState("");
+  const filtered = CRYPTO.filter(
+    (a) => a.symbol.toLowerCase().includes(q.toLowerCase()) || a.name.toLowerCase().includes(q.toLowerCase())
+  );
+  return (
+    <div>
+      <SectionHeader title="Pasar Dunia" desc="Aset kripto populer, harga dalam Rupiah" />
+      <div className="px-4 pb-2">
+        <div
+          className="flex items-center gap-2 rounded-xl px-3 py-2"
+          style={{ background: COLORS.surface2, border: `1px solid ${COLORS.border}` }}
+        >
+          <Search size={16} style={{ color: COLORS.muted }} />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Cari aset..."
+            className="bg-transparent outline-none flex-1 text-sm font-body"
+            style={{ color: COLORS.text }}
+          />
+        </div>
+      </div>
+      <div>
+        {filtered.map((a) => (
+          <AssetRow key={a.symbol} asset={a} group="crypto" onClick={() => onSelect(a, "crypto")} />
+        ))}
+        {filtered.length === 0 && (
+          <div className="px-4 py-6 text-center text-sm font-body" style={{ color: COLORS.muted }}>
+            Tidak ada aset yang cocok.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ForexTab({ onSelect }) {
+  return (
+    <div>
+      <SectionHeader title="Trading Forex" desc="Pasangan mata uang utama dunia" />
+      <div>
+        {FOREX.map((a) => (
+          <AssetRow key={a.symbol} asset={a} group="forex" onClick={() => onSelect(a, "forex")} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SahamTab({ onSelect }) {
+  return (
+    <div>
+      <SectionHeader title="Trading Saham" desc="Saham global populer (harga dalam USD)" />
+      <div>
+        {GLOBAL_STOCKS.map((a) => (
+          <AssetRow key={a.symbol} asset={a} group="stocks" onClick={() => onSelect(a, "stocks")} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function InvestasiTab({ holdings, onSelect }) {
+  const owned = Object.entries(holdings).filter(([k, h]) => k.startsWith("idx:") && h.qty > 0.000001);
+  const totalValue = owned.reduce((sum, [, h]) => {
+    const asset = IDX_STOCKS.find((a) => a.symbol === h.symbol);
+    return sum + (asset ? h.qty * asset.price : 0);
+  }, 0);
+
+  return (
+    <div>
+      <SectionHeader title="Investasi Saham Indonesia" desc="Saham unggulan di Bursa Efek Indonesia (IDX)" />
+      {owned.length > 0 && (
+        <div className="px-4 pb-3">
+          <div className="rounded-xl p-3" style={{ background: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
+            <div className="text-xs font-body mb-2" style={{ color: COLORS.muted }}>
+              Portofolio Anda
+            </div>
+            {owned.map(([k, h]) => {
+              const asset = IDX_STOCKS.find((a) => a.symbol === h.symbol);
+              const value = asset ? h.qty * asset.price : 0;
+              return (
+                <div key={k} className="flex justify-between items-center py-1">
+                  <span className="font-mono text-sm" style={{ color: COLORS.text }}>
+                    {h.symbol} · {h.qty.toFixed(4)} lbr
+                  </span>
+                  <span className="font-mono text-sm" style={{ color: COLORS.gold }}>
+                    {fmtIDR(value)}
+                  </span>
+                </div>
+              );
+            })}
+            <div
+              className="flex justify-between items-center pt-2 mt-1 font-display text-sm font-semibold"
+              style={{ borderTop: `1px solid ${COLORS.border}`, color: COLORS.text }}
+            >
+              <span>Total Nilai</span>
+              <span className="font-mono">{fmtIDR(totalValue)}</span>
+            </div>
+          </div>
+        </div>
+      )}
+      <div>
+        {IDX_STOCKS.map((a) => (
+          <AssetRow key={a.symbol} asset={a} group="idx" onClick={() => onSelect(a, "idx")} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------
+   WALLET / DOMPET TAB
+--------------------------------------------------------- */
+function HistoryItem({ item }) {
+  const positive = item.amount >= 0;
+  let Icon = Send;
+  if (item.type === "deposit") Icon = ArrowDownToLine;
+  else if (item.type === "withdraw") Icon = ArrowUpFromLine;
+  else if (item.type === "transfer") Icon = Send;
+  else if (item.type === "trade") Icon = TrendingUp;
+
+  return (
+    <div className="flex items-center gap-3 py-3" style={{ borderBottom: `1px solid ${COLORS.border}` }}>
+      <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: COLORS.surface2 }}>
+        <Icon size={16} style={{ color: positive ? COLORS.jade : COLORS.coral }} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-body" style={{ color: COLORS.text }}>
+          {item.desc}
+        </div>
+        <div className="text-xs font-mono" style={{ color: COLORS.muted }}>
+          {item.date} · {item.status}
+        </div>
+      </div>
+      <div className="font-mono text-sm font-medium flex-shrink-0" style={{ color: positive ? COLORS.jade : COLORS.coral }}>
+        {positive ? "+" : ""}
+        {fmtIDR(item.amount)}
+      </div>
+    </div>
+  );
+}
+
+function WalletTab({ balance, setBalance, history, addHistory, portfolioValue, totalAsset }) {
+  const [action, setAction] = useState(null);
+  const [amount, setAmount] = useState(0);
+  const [msg, setMsg] = useState("");
+
+  const [depositMethod, setDepositMethod] = useState("bank");
+  const [withdrawBank, setWithdrawBank] = useState("BCA");
+  const [withdrawAcc, setWithdrawAcc] = useState("");
+  const [withdrawName, setWithdrawName] = useState("");
+  const [transferTo, setTransferTo] = useState("");
+  const [transferNote, setTransferNote] = useState("");
+
+  const vaNumber = useMemo(() => "8808" + Math.floor(100000000 + Math.random() * 900000000), []);
+  const cryptoAddr = useMemo(
+    () => "0x" + Array.from({ length: 40 }, () => "0123456789abcdef"[Math.floor(Math.random() * 16)]).join(""),
+    []
+  );
+
+  const reset = () => {
+    setAmount(0);
+    setWithdrawAcc("");
+    setWithdrawName("");
+    setTransferTo("");
+    setTransferNote("");
+    setMsg("");
+  };
+
+  const close = () => {
+    setAction(null);
+    reset();
+  };
+
+  const handleDeposit = () => {
+    if (amount <= 0) return;
+    setBalance((b) => b + amount);
+    addHistory({
+      type: "deposit",
+      desc: depositMethod === "bank" ? "Deposit via Transfer Bank" : "Deposit via Wallet Kripto",
+      amount,
+    });
+    setMsg(`Deposit ${fmtIDR(amount)} berhasil (simulasi).`);
+    setTimeout(close, 1200);
+  };
+
+  const handleWithdraw = () => {
+    if (amount <= 0 || amount > balance || !withdrawAcc || !withdrawName) return;
+    setBalance((b) => b - amount);
+    addHistory({
+      type: "withdraw",
+      desc: `Penarikan ke ${withdrawBank} •••${withdrawAcc.slice(-4)}`,
+      amount: -amount,
+      status: "Diproses",
+    });
+    setMsg(`Penarikan ${fmtIDR(amount)} sedang diproses (simulasi).`);
+    setTimeout(close, 1200);
+  };
+
+  const handleTransfer = () => {
+    if (amount <= 0 || amount > balance || !transferTo) return;
+    setBalance((b) => b - amount);
+    addHistory({ type: "transfer", desc: `Transfer ke ${transferTo}`, amount: -amount });
+    setMsg(`Transfer ${fmtIDR(amount)} ke ${transferTo} berhasil (simulasi).`);
+    setTimeout(close, 1200);
+  };
+
+  const QuickAction = ({ id, icon: Icon, label }) => (
+    <button
+      onClick={() => {
+        setAction(action === id ? null : id);
+        reset();
+      }}
+      className="flex-1 flex flex-col items-center gap-1.5 rounded-xl py-3"
+      style={{
+        background: action === id ? COLORS.gold : COLORS.surface,
+        border: `1px solid ${COLORS.border}`,
+      }}
+    >
+      <Icon size={18} style={{ color: action === id ? "#11151E" : COLORS.gold }} />
+      <span
+        className="text-xs font-display font-medium"
+        style={{ color: action === id ? "#11151E" : COLORS.text }}
+      >
+        {label}
+      </span>
+    </button>
+  );
+
+  return (
+    <div className="px-4 pt-4 pb-6">
+      <div className="rounded-2xl p-4 mb-3" style={{ background: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
+        <div className="text-xs font-body mb-1" style={{ color: COLORS.muted }}>
+          Saldo Tunai
+        </div>
+        <div className="font-mono text-2xl font-semibold mb-3" style={{ color: COLORS.text }}>
+          {fmtIDR(balance)}
+        </div>
+        <div className="flex justify-between text-xs font-mono pt-3" style={{ borderTop: `1px solid ${COLORS.border}`, color: COLORS.muted }}>
+          <span>Nilai Portofolio</span>
+          <span style={{ color: COLORS.gold }}>{fmtIDR(portfolioValue)}</span>
+        </div>
+        <div className="flex justify-between text-xs font-mono mt-1" style={{ color: COLORS.muted }}>
+          <span>Total Aset</span>
+          <span style={{ color: COLORS.text }}>{fmtIDR(totalAsset)}</span>
+        </div>
+      </div>
+
+      <div className="flex gap-2 mb-4">
+        <QuickAction id="deposit" icon={ArrowDownToLine} label="Deposit" />
+        <QuickAction id="withdraw" icon={ArrowUpFromLine} label="Withdraw" />
+        <QuickAction id="transfer" icon={Send} label="Transfer" />
+      </div>
+
+      {action === "deposit" && (
+        <div className="rounded-xl p-4 mb-4" style={{ background: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
+          <div className="font-display text-sm font-semibold mb-3" style={{ color: COLORS.text }}>
+            Deposit Saldo
+          </div>
+          <div className="flex gap-2 mb-3">
+            {["bank", "kripto"].map((m) => (
+              <button
+                key={m}
+                onClick={() => setDepositMethod(m)}
+                className="flex-1 rounded-lg py-2 text-xs font-display font-medium"
+                style={{
+                  background: depositMethod === m ? COLORS.gold : COLORS.surface2,
+                  color: depositMethod === m ? "#11151E" : COLORS.text,
+                }}
+              >
+                {m === "bank" ? "Transfer Bank" : "Wallet Kripto"}
+              </button>
+            ))}
+          </div>
+          {depositMethod === "bank" ? (
+            <div className="text-xs font-mono mb-3 px-3 py-2 rounded-lg" style={{ background: COLORS.surface2, color: COLORS.muted }}>
+              Virtual Account BCA
+              <div className="font-display text-sm font-semibold mt-1" style={{ color: COLORS.text }}>
+                {vaNumber}
+              </div>
+            </div>
+          ) : (
+            <div className="text-xs font-mono mb-3 px-3 py-2 rounded-lg break-all" style={{ background: COLORS.surface2, color: COLORS.muted }}>
+              Alamat Wallet (mock)
+              <div className="font-display text-xs font-semibold mt-1" style={{ color: COLORS.text }}>
+                {cryptoAddr}
+              </div>
+            </div>
+          )}
+          <div className="mb-3">
+            <div className="text-xs font-body mb-1" style={{ color: COLORS.muted }}>
+              Jumlah Deposit
+            </div>
+            <AmountInput value={amount} onChange={setAmount} />
+          </div>
+          {msg && (
+            <div className="text-xs font-body mb-2" style={{ color: COLORS.jade }}>
+              {msg}
+            </div>
+          )}
+          <PrimaryButton onClick={handleDeposit} disabled={amount <= 0}>
+            Konfirmasi Pembayaran (Simulasi)
+          </PrimaryButton>
+        </div>
+      )}
+
+      {action === "withdraw" && (
+        <div className="rounded-xl p-4 mb-4" style={{ background: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
+          <div className="font-display text-sm font-semibold mb-3" style={{ color: COLORS.text }}>
+            Tarik Saldo
+          </div>
+          <div className="mb-2">
+            <div className="text-xs font-body mb-1" style={{ color: COLORS.muted }}>
+              Bank Tujuan
+            </div>
+            <div className="flex gap-2">
+              {["BCA", "Mandiri", "BNI", "BRI"].map((bk) => (
+                <button
+                  key={bk}
+                  onClick={() => setWithdrawBank(bk)}
+                  className="flex-1 rounded-lg py-2 text-xs font-display font-medium"
+                  style={{
+                    background: withdrawBank === bk ? COLORS.gold : COLORS.surface2,
+                    color: withdrawBank === bk ? "#11151E" : COLORS.text,
+                  }}
+                >
+                  {bk}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="mb-2">
+            <div className="text-xs font-body mb-1" style={{ color: COLORS.muted }}>
+              Nomor Rekening
+            </div>
+            <TextInput value={withdrawAcc} onChange={setWithdrawAcc} placeholder="cth. 1234567890" />
+          </div>
+          <div className="mb-2">
+            <div className="text-xs font-body mb-1" style={{ color: COLORS.muted }}>
+              Nama Pemilik Rekening
+            </div>
+            <TextInput value={withdrawName} onChange={setWithdrawName} placeholder="Nama sesuai rekening" />
+          </div>
+          <div className="mb-3">
+            <div className="text-xs font-body mb-1" style={{ color: COLORS.muted }}>
+              Jumlah Penarikan
+            </div>
+            <AmountInput value={amount} onChange={setAmount} />
+            {amount > balance && (
+              <div className="text-xs font-body mt-1" style={{ color: COLORS.coral }}>
+                Jumlah melebihi saldo tersedia ({fmtIDR(balance)}).
+              </div>
+            )}
+          </div>
+          {msg && (
+            <div className="text-xs font-body mb-2" style={{ color: COLORS.jade }}>
+              {msg}
+            </div>
+          )}
+          <PrimaryButton onClick={handleWithdraw} disabled={amount <= 0 || amount > balance || !withdrawAcc || !withdrawName} color={COLORS.coral}>
+            Ajukan Penarikan
+          </PrimaryButton>
+        </div>
+      )}
+
+      {action === "transfer" && (
+        <div className="rounded-xl p-4 mb-4" style={{ background: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
+          <div className="font-display text-sm font-semibold mb-3" style={{ color: COLORS.text }}>
+            Transfer Saldo
+          </div>
+          <div className="mb-2">
+            <div className="text-xs font-body mb-1" style={{ color: COLORS.muted }}>
+              ID Pengguna / Alamat Wallet Tujuan
+            </div>
+            <TextInput value={transferTo} onChange={setTransferTo} placeholder="@username atau 0x..." />
+          </div>
+          <div className="mb-2">
+            <div className="text-xs font-body mb-1" style={{ color: COLORS.muted }}>
+              Catatan (opsional)
+            </div>
+            <TextInput value={transferNote} onChange={setTransferNote} placeholder="Pesan untuk penerima" />
+          </div>
+          <div className="mb-3">
+            <div className="text-xs font-body mb-1" style={{ color: COLORS.muted }}>
+              Jumlah Transfer
+            </div>
+            <AmountInput value={amount} onChange={setAmount} />
+            {amount > balance && (
+              <div className="text-xs font-body mt-1" style={{ color: COLORS.coral }}>
+                Jumlah melebihi saldo tersedia ({fmtIDR(balance)}).
+              </div>
+            )}
+          </div>
+          {msg && (
+            <div className="text-xs font-body mb-2" style={{ color: COLORS.jade }}>
+              {msg}
+            </div>
+          )}
+          <PrimaryButton onClick={handleTransfer} disabled={amount <= 0 || amount > balance || !transferTo}>
+            Kirim Sekarang
+          </PrimaryButton>
+        </div>
+      )}
+
+      <div className="font-display text-sm font-semibold mb-1" style={{ color: COLORS.text }}>
+        Riwayat Transaksi
+      </div>
+      <div>
+        {history.length === 0 && (
+          <div className="text-sm font-body py-4" style={{ color: COLORS.muted }}>
+            Belum ada transaksi.
+          </div>
+        )}
+        {history.map((item) => (
+          <HistoryItem key={item.id} item={item} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------
+   BOTTOM NAV
+--------------------------------------------------------- */
+const TABS = [
+  { id: "market", label: "Pasar", icon: Globe2 },
+  { id: "forex", label: "Forex", icon: TrendingUp },
+  { id: "saham", label: "Saham", icon: BarChart3 },
+  { id: "investasi", label: "Investasi", icon: Landmark },
+  { id: "dompet", label: "Dompet", icon: Wallet },
+];
+
+function BottomNav({ active, onChange }) {
+  return (
+    <div className="flex" style={{ background: COLORS.surface, borderTop: `1px solid ${COLORS.border}` }}>
+      {TABS.map((t) => {
+        const Icon = t.icon;
+        const isActive = active === t.id;
+        return (
+          <button
+            key={t.id}
+            onClick={() => onChange(t.id)}
+            className="flex-1 flex flex-col items-center gap-1 py-2.5"
+          >
+            <Icon size={18} style={{ color: isActive ? COLORS.gold : COLORS.muted }} />
+            <span
+              className="text-[10px] font-display font-medium"
+              style={{ color: isActive ? COLORS.gold : COLORS.muted }}
+            >
+              {t.label}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------
+   APP
+--------------------------------------------------------- */
+export default function TradingApp() {
+  const [activeTab, setActiveTab] = useState("market");
+  const [balance, setBalance] = useState(25000000);
+  const [holdings, setHoldings] = useState({});
+  const [history, setHistory] = useState([
+    {
+      id: 1,
+      type: "deposit",
+      desc: "Saldo awal akun (demo)",
+      amount: 25000000,
+      date: new Date().toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" }),
+      status: "Berhasil",
+    },
+  ]);
+  const [selected, setSelected] = useState(null);
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 3000);
+    return () => clearInterval(id);
+  }, []);
+
+  const addHistory = (entry) =>
+    setHistory((h) => [
+      {
+        id: Date.now() + Math.random(),
+        date: new Date().toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" }),
+        status: "Berhasil",
+        ...entry,
+      },
+      ...h,
+    ]);
+
+  const portfolioValue = useMemo(() => {
+    return Object.entries(holdings).reduce((sum, [k, h]) => {
+      if (!h.qty) return sum;
+      const [group, symbol] = k.split(":");
+      let asset;
+      if (group === "crypto") asset = CRYPTO.find((a) => a.symbol === symbol);
+      else if (group === "forex") asset = FOREX.find((a) => a.symbol === symbol);
+      else if (group === "stocks") asset = GLOBAL_STOCKS.find((a) => a.symbol === symbol);
+      else if (group === "idx") asset = IDX_STOCKS.find((a) => a.symbol === symbol);
+      if (!asset) return sum;
+      return sum + h.qty * priceIDR(group, asset);
+    }, 0);
+  }, [holdings]);
+
+  const totalAsset = balance + portfolioValue;
+
+  return (
+    <div className="h-screen w-full max-w-md mx-auto flex flex-col font-body" style={{ background: COLORS.bg }}>
+      <FontStyles />
+      <Header totalAsset={totalAsset} onWallet={() => setActiveTab("dompet")} />
+      <TickerTape tick={tick} />
+      <DemoBanner />
+      <div className="flex-1 overflow-y-auto">
+        {activeTab === "market" && <MarketTab onSelect={(a, g) => setSelected({ asset: a, group: g })} />}
+        {activeTab === "forex" && <ForexTab onSelect={(a, g) => setSelected({ asset: a, group: g })} />}
+        {activeTab === "saham" && <SahamTab onSelect={(a, g) => setSelected({ asset: a, group: g })} />}
+        {activeTab === "investasi" && (
+          <InvestasiTab holdings={holdings} onSelect={(a, g) => setSelected({ asset: a, group: g })} />
+        )}
+        {activeTab === "dompet" && (
+          <WalletTab
+            balance={balance}
+            setBalance={setBalance}
+            history={history}
+            addHistory={addHistory}
+            portfolioValue={portfolioValue}
+            totalAsset={totalAsset}
+          />
+        )}
+      </div>
+      <BottomNav active={activeTab} onChange={setActiveTab} />
+      {selected && (
+        <TradeModal
+          asset={selected.asset}
+          group={selected.group}
+          onClose={() => setSelected(null)}
+          balance={balance}
+          setBalance={setBalance}
+          holdings={holdings}
+          setHoldings={setHoldings}
+          addHistory={addHistory}
+        />
+      )}
+    </div>
+  );
+}
