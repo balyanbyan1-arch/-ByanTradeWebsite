@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lentera Dimsum Factory Outlet | Kafe & Factory Outlet Dimsum</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1E1812;
+    --ink-soft:#2C231B;
+    --cream:#F7EFE0;
+    --cream-soft:#FBF6EC;
+    --red:#C8453A;
+    --red-deep:#9C3127;
+    --gold:#E3A23C;
+    --gold-soft:#F3CD8C;
+    --jade:#4F6B52;
+    --jade-deep:#34453A;
+    --text-dark:#2B2118;
+    --text-light:#F7EFE0;
+    --muted-dark:rgba(247,239,224,0.68);
+    --muted-light:rgba(43,33,24,0.62);
+    --font-display:'Fraunces', serif;
+    --font-body:'Plus Jakarta Sans', sans-serif;
+    --font-mono:'Space Mono', monospace;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:var(--font-body);
+    color:var(--text-dark);
+    background:var(--cream);
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none;}
+  ul{list-style:none;}
+  img,svg{display:block;max-width:100%;}
+
+  a:focus-visible,button:focus-visible{
+    outline:2px solid var(--gold);
+    outline-offset:3px;
+    border-radius:4px;
+  }
+
+  .skip-link{
+    position:absolute;left:-9999px;top:0;
+    background:var(--gold);color:var(--ink);
+    padding:10px 18px;font-weight:700;z-index:1000;
+    border-radius:0 0 8px 0;
+  }
+  .skip-link:focus{left:0;}
+
+  .container{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 24px;
+  }
+
+  .section{padding:96px 0;}
+  @media (max-width:720px){.section{padding:64px 0;}}
+
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:0.75rem;
+    letter-spacing:0.22em;
+    text-transform:uppercase;
+    margin-bottom:18px;
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+  }
+  .eyebrow::before{
+    content:'';
+    display:inline-block;
+    width:22px;height:1px;
+    background:currentColor;
+    opacity:0.5;
+  }
+
+  .section-title{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:clamp(2rem,4.6vw,3.1rem);
+    line-height:1.12;
+    margin-bottom:22px;
+    letter-spacing:-0.01em;
+  }
+
+  .lead{
+    font-size:1.05rem;
+    max-width:560px;
+  }
+
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:15px 30px;
+    border-radius:999px;
+    font-family:var(--font-body);
+    font-weight:700;
+    font-size:0.95rem;
+    transition:transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    border:1.5px solid transparent;
+    cursor:pointer;
+  }
+  .btn-primary{
+    background:var(--red);
+    color:var(--cream-soft);
+    box-shadow:0 10px 28px -10px rgba(200,69,58,0.7);
+  }
+  .btn-primary:hover{
+    transform:translateY(-2px);
+    box-shadow:0 14px 32px -10px rgba(200,69,58,0.8);
+  }
+  .btn-ghost{
+    border-color:rgba(247,239,224,0.35);
+    color:var(--text-light);
+  }
+  .btn-ghost:hover{
+    background:rgba(247,239,224,0.08);
+    transform:translateY(-2px);
+  }
+  .btn-dark{
+    border-color:rgba(43,33,24,0.2);
+    color:var(--text-dark);
+  }
+  .btn-dark:hover{
+    background:rgba(43,33,24,0.06);
+    transform:translateY(-2px);
+  }
+
+  /* ---------- Lantern mark (logo + decorations) ---------- */
+  .lantern-mark{
+    position:relative;
+    width:22px;height:28px;
+    border-radius:50% 50% 46% 46%;
+    background:linear-gradient(160deg, var(--gold-soft), var(--gold) 55%, var(--red));
+    box-shadow:0 0 14px rgba(227,162,60,0.55);
+    flex-shrink:0;
+  }
+  .lantern-mark::before{
+    content:'';
+    position:absolute;top:-6px;left:50%;transform:translateX(-50%);
+    width:11px;height:4px;background:var(--gold-soft);border-radius:2px;
+  }
+  .lantern-mark::after{
+    content:'';
+    position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);
+    width:2px;height:8px;background:var(--gold-soft);
+  }
+  .lantern-mark.lantern-large{
+    width:64px;height:84px;
+    box-shadow:0 0 40px rgba(227,162,60,0.45);
+  }
+  .lantern-mark.lantern-large::before{width:26px;height:10px;}
+  .lantern-mark.lantern-large::after{width:3px;height:22px;}
+
+  @keyframes sway{
+    0%,100%{transform:rotate(-2deg);}
+    50%{transform:rotate(2deg);}
+  }
+  @keyframes drift{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-14px);}
+  }
+
+  /* ---------- Nav ---------- */
+  .nav{
+    position:fixed;top:0;left:0;right:0;z-index:200;
+    padding:22px 0;
+    transition:background 0.35s ease, padding 0.35s ease, box-shadow 0.35s ease;
+  }
+  .nav.scrolled{
+    background:var(--ink);
+    padding:14px 0;
+    box-shadow:0 6px 24px rgba(0,0,0,0.25);
+  }
+  .nav .container{
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .logo{
+    display:flex;align-items:center;gap:10px;
+    font-family:var(--font-display);
+    font-weight:800;
+    font-size:1.2rem;
+    letter-spacing:0.01em;
+    color:var(--text-light);
+  }
+  .nav-links{
+    display:flex;align-items:center;gap:36px;
+  }
+  .nav-links a{
+    font-weight:600;font-size:0.92rem;color:var(--text-light);
+    transition:color 0.2s ease;
+  }
+  .nav-links a:hover{color:var(--gold-soft);}
+  .nav-links .btn{padding:11px 24px;font-size:0.85rem;}
+
+  .menu-toggle{
+    display:none;
+    flex-direction:column;
+    justify-content:center;
+    gap:5px;
+    width:36px;height:36px;
+    background:none;border:none;
+    cursor:pointer;
+  }
+  .menu-toggle span{
+    display:block;width:24px;height:2px;background:var(--text-light);
+    transition:transform 0.3s ease, opacity 0.3s ease;
+  }
+  .menu-toggle.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+  .menu-toggle.open span:nth-child(2){opacity:0;}
+  .menu-toggle.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+  @media (max-width:860px){
+    .menu-toggle{display:flex;}
+    .nav-links{
+      position:fixed;top:0;right:-100%;
+      width:78%;max-width:320px;height:100vh;
+      background:var(--ink-soft);
+      flex-direction:column;
+      align-items:flex-start;
+      justify-content:flex-start;
+      gap:30px;
+      padding:110px 36px;
+      transition:right 0.4s ease;
+      box-shadow:-10px 0 40px rgba(0,0,0,0.3);
+    }
+    .nav-links.open{right:0;}
+    .nav-links .btn{margin-top:8px;}
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    min-height:100vh;
+    display:flex;align-items:center;
+    background:var(--ink);
+    color:var(--text-light);
+    position:relative;
+    overflow:hidden;
+    padding-top:110px;
+    padding-bottom:60px;
+  }
+  .hero::before{
+    content:'';
+    position:absolute;
+    top:-20%;right:-10%;
+    width:60vw;height:60vw;
+    background:radial-gradient(circle, rgba(227,162,60,0.22), transparent 65%);
+    pointer-events:none;
+  }
+  .hero::after{
+    content:'';
+    position:absolute;
+    bottom:-30%;left:-15%;
+    width:55vw;height:55vw;
+    background:radial-gradient(circle, rgba(200,69,58,0.18), transparent 65%);
+    pointer-events:none;
+  }
+  .hero .container{position:relative;z-index:2;}
+
+  .hero-decor{
+    position:absolute;z-index:1;opacity:0.55;
+    animation:drift 9s ease-in-out infinite, sway 7s ease-in-out infinite;
+    transform-origin:top center;
+  }
+  .hero-decor.d1{top:14%;right:12%;}
+  .hero-decor.d2{bottom:10%;right:26%;animation-delay:1.5s,0.8s;}
+  .hero-decor.d3{top:58%;right:6%;width:40px;height:50px;animation-delay:3s,2s;}
+
+  .rating-badge{
+    display:inline-flex;align-items:center;gap:10px;
+    font-family:var(--font-mono);font-size:0.85rem;
+    padding:9px 18px;border:1px solid rgba(247,239,224,0.28);
+    border-radius:999px;margin-bottom:28px;
+    color:var(--muted-dark);
+  }
+  .rating-badge .star{color:var(--gold-soft);}
+
+  .hero-title{margin-bottom:26px;}
+  .hero-title .brand{
+    display:block;
+    font-family:var(--font-display);
+    font-weight:900;
+    font-size:clamp(3.4rem,11vw,7.2rem);
+    line-height:0.98;
+    letter-spacing:-0.01em;
+  }
+  .hero-title .descriptor{
+    display:block;
+    font-family:var(--font-display);
+    font-style:italic;
+    font-weight:500;
+    font-size:clamp(1.2rem,3.4vw,2rem);
+    color:var(--gold-soft);
+    letter-spacing:0.03em;
+    margin-top:10px;
+  }
+
+  .hero .lead{color:var(--muted-dark);margin-bottom:40px;}
+
+  .hero-ctas{display:flex;flex-wrap:wrap;gap:16px;}
+
+  /* ---------- Menu ---------- */
+  .menu{background:var(--ink);color:var(--text-light);padding-top:20px;}
+  .menu-header{max-width:620px;margin-bottom:60px;}
+
+  .menu-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:56px 24px;
+  }
+  @media (max-width:980px){
+    .menu-grid{grid-template-columns:repeat(2,1fr);gap:64px 20px;}
+  }
+  @media (max-width:480px){
+    .menu-grid{grid-template-columns:1fr;max-width:300px;margin:0 auto;}
+  }
+
+  .menu-lantern{
+    position:relative;
+    background:linear-gradient(165deg, var(--gold-soft) 0%, var(--gold) 48%, var(--red) 100%);
+    border-radius:18px 18px 30px 30px;
+    padding:30px 20px 34px;
+    color:var(--text-dark);
+    box-shadow:0 0 0 1px rgba(255,255,255,0.10) inset, 0 24px 44px -24px rgba(227,162,60,0.55), 0 0 34px rgba(227,162,60,0.22);
+    animation:sway 6s ease-in-out infinite;
+    transform-origin:top center;
+  }
+  .menu-grid > :nth-child(2n){animation-duration:5.2s;animation-delay:0.6s;}
+  .menu-grid > :nth-child(3n){animation-duration:7s;animation-delay:1.2s;}
+
+  .menu-lantern::before{
+    content:'';
+    position:absolute;top:-11px;left:50%;transform:translateX(-50%);
+    width:20px;height:20px;border:3px solid var(--gold-soft);
+    border-radius:50%;background:var(--ink);
+  }
+  .menu-lantern::after{
+    content:'';
+    position:absolute;bottom:-11px;left:50%;transform:translateX(-50%);
+    width:3px;height:18px;background:var(--gold-soft);border-radius:2px;
+  }
+  .menu-lantern .tag{
+    display:inline-block;
+    font-family:var(--font-mono);
+    font-size:0.68rem;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    padding:4px 10px;
+    border-radius:999px;
+    background:rgba(43,33,24,0.12);
+    margin-bottom:14px;
+  }
+  .menu-lantern .name{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:1.18rem;
+    line-height:1.25;
+    margin-bottom:6px;
+  }
+  .menu-lantern .portion{
+    font-size:0.82rem;
+    color:rgba(43,33,24,0.62);
+    margin-bottom:18px;
+  }
+  .menu-lantern .price{
+    font-family:var(--font-mono);
+    font-weight:700;
+    font-size:1.15rem;
+  }
+
+  /* ---------- About ---------- */
+  .about{background:var(--cream-soft);}
+  .about .container{
+    display:grid;
+    grid-template-columns:1.1fr 0.9fr;
+    gap:72px;
+    align-items:center;
+  }
+  @media (max-width:880px){
+    .about .container{grid-template-columns:1fr;gap:48px;}
+    .about .steamer-wrap{order:-1;}
+  }
+  .about p{margin-bottom:18px;color:var(--text-dark);}
+  .about p:last-of-type{margin-bottom:36px;}
+
+  .value-list{
+    display:grid;
+    gap:22px;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  }
+  .value-item{
+    border-top:2px solid var(--gold);
+    padding-top:14px;
+  }
+  .value-item h3{
+    font-family:var(--font-display);
+    font-size:1.05rem;
+    font-weight:700;
+    margin-bottom:8px;
+  }
+  .value-item p{
+    font-size:0.9rem;
+    color:var(--muted-light);
+    margin-bottom:0;
+  }
+
+  /* Steamer illustration */
+  .steamer-wrap{
+    display:flex;justify-content:center;
+    position:relative;
+    padding:40px 0;
+  }
+  .steamer{
+    position:relative;
+    width:220px;
+  }
+  .steamer-basket{
+    width:100%;height:46px;
+    border-radius:8px;
+    margin-bottom:10px;
+    background:repeating-linear-gradient(
+      90deg,
+      var(--gold-soft) 0 8px,
+      var(--gold) 8px 16px
+    );
+    box-shadow:0 8px 18px -10px rgba(43,33,24,0.4);
+  }
+  .steamer-basket.b2{width:90%;margin:0 auto 10px;}
+  .steamer-basket.b3{width:80%;margin:0 auto;background:repeating-linear-gradient(
+      90deg,
+      var(--jade) 0 8px,
+      var(--jade-deep) 8px 16px
+    );}
+  .steam{
+    position:absolute;
+    bottom:100%;
+    border-radius:50%;
+    background:rgba(247,239,224,0.9);
+    filter:blur(6px);
+    opacity:0;
+    animation:steam-rise 4s ease-in infinite;
+  }
+  .steam.s1{left:30%;width:26px;height:50px;animation-delay:0s;}
+  .steam.s2{left:50%;width:20px;height:60px;animation-delay:1.3s;}
+  .steam.s3{left:68%;width:24px;height:46px;animation-delay:2.6s;}
+  @keyframes steam-rise{
+    0%{opacity:0;transform:translateY(0) scale(0.8);}
+    25%{opacity:0.6;}
+    100%{opacity:0;transform:translateY(-70px) scale(1.3);}
+  }
+
+  /* ---------- Factory Outlet ---------- */
+  .factory{background:var(--jade-deep);color:var(--text-light);}
+  .factory .intro{max-width:640px;margin-bottom:56px;}
+  .factory .eyebrow{color:var(--gold-soft);}
+
+  .price-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:24px;
+    margin-bottom:36px;
+  }
+  .price-card{
+    background:rgba(247,239,224,0.05);
+    border:1px solid rgba(247,239,224,0.14);
+    border-radius:18px;
+    padding:32px 26px;
+  }
+  .price-card .pname{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:1.2rem;
+    margin-bottom:6px;
+  }
+  .price-card .pisi{
+    font-family:var(--font-mono);
+    font-size:0.78rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--gold-soft);
+    margin-bottom:18px;
+  }
+  .price-card .pprice{
+    font-family:var(--font-mono);
+    font-weight:700;
+    font-size:1.6rem;
+    margin-bottom:10px;
+  }
+  .price-card .pdesc{
+    font-size:0.88rem;
+    color:var(--muted-dark);
+  }
+  .price-note{
+    font-size:0.88rem;
+    color:var(--muted-dark);
+    max-width:600px;
+    margin-bottom:32px;
+  }
+
+  /* ---------- Location ---------- */
+  .location{background:var(--cream);}
+  .location .container{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:64px;
+    align-items:center;
+  }
+  @media (max-width:880px){
+    .location .container{grid-template-columns:1fr;gap:48px;}
+    .map-illustration{order:-1;}
+  }
+
+  .hours{
+    margin:28px 0 32px;
+    font-size:0.95rem;
+  }
+  .hours div{
+    display:flex;justify-content:space-between;
+    max-width:340px;
+    padding:10px 0;
+    border-bottom:1px solid rgba(43,33,24,0.12);
+  }
+  .hours div:first-child{border-top:1px solid rgba(43,33,24,0.12);}
+  .hours span:last-child{font-family:var(--font-mono);}
+
+  .address{
+    font-size:1rem;
+    margin-bottom:6px;
+  }
+  .location-ctas{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px;}
+
+  .map-illustration{
+    position:relative;
+    aspect-ratio:1/1;
+    max-width:420px;
+    margin:0 auto;
+    border-radius:24px;
+    overflow:hidden;
+    background:
+      linear-gradient(var(--cream-soft) 1px, transparent 1px) 0 0/40px 40px,
+      linear-gradient(90deg, var(--cream-soft) 1px, transparent 1px) 0 0/40px 40px,
+      var(--jade-deep);
+    border:1px solid rgba(43,33,24,0.08);
+  }
+  .map-illustration::before{
+    content:'';
+    position:absolute;inset:0;
+    background:
+      linear-gradient(rgba(247,239,224,0.06) 1px, transparent 1px) 0 0/40px 40px,
+      linear-gradient(90deg, rgba(247,239,224,0.06) 1px, transparent 1px) 0 0/40px 40px;
+  }
+  .map-pin{
+    position:absolute;top:42%;left:48%;
+    transform:translate(-50%,-50%);
+    text-align:center;
+    z-index:2;
+  }
+  .map-pin .lantern-mark{margin:0 auto 8px;animation:none;}
+  .map-pin .pin-label{
+    font-family:var(--font-mono);
+    font-size:0.7rem;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--text-light);
+    background:var(--red);
+    padding:6px 12px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+
+  /* ---------- Footer ---------- */
+  .footer{background:var(--ink);color:var(--text-light);padding:72px 0 32px;}
+  .footer-top{
+    display:grid;
+    grid-template-columns:1.4fr 1fr 1fr;
+    gap:48px;
+    margin-bottom:56px;
+  }
+  @media (max-width:780px){
+    .footer-top{grid-template-columns:1fr;gap:40px;}
+  }
+  .footer-logo{
+    display:flex;align-items:center;gap:10px;
+    font-family:var(--font-display);font-weight:800;font-size:1.3rem;
+    margin-bottom:14px;
+  }
+  .footer-tagline{color:var(--muted-dark);max-width:320px;}
+  .footer h4{
+    font-family:var(--font-mono);
+    font-size:0.75rem;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    margin-bottom:18px;
+    color:var(--gold-soft);
+  }
+  .footer ul{display:flex;flex-direction:column;gap:12px;}
+  .footer a:hover{color:var(--gold-soft);}
+  .footer-bottom{
+    border-top:1px solid rgba(247,239,224,0.12);
+    padding-top:24px;
+    display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;
+    font-size:0.82rem;color:var(--muted-dark);
+  }
+
+  /* ---------- Reveal on scroll ---------- */
+  .reveal{
+    opacity:0;
+    transform:translateY(24px);
+    transition:opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible{opacity:1;transform:translateY(0);}
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{
+      animation-duration:0.01ms !important;
+      animation-iteration-count:1 !important;
+      transition-duration:0.01ms !important;
+      scroll-behavior:auto !important;
+    }
+    .reveal{opacity:1;transform:none;}
+  }
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Lewati ke konten</a>
+
+<header class="nav" id="nav">
+  <div class="container">
+    <a href="#" class="logo">
+      <span class="lantern-mark" aria-hidden="true"></span>
+      Lentera
+    </a>
+    <nav class="nav-links" id="navLinks">
+      <a href="#menu">Menu</a>
+      <a href="#tentang">Tentang</a>
+      <a href="#factory">Factory Outlet</a>
+      <a href="#lokasi">Lokasi</a>
+      <a class="btn btn-primary" href="https://wa.me/6281234567890?text=Halo%20Lentera%2C%20saya%20mau%20pesan%20dimsum" target="_blank" rel="noopener">Pesan via WhatsApp</a>
+    </nav>
+    <button class="menu-toggle" id="menuToggle" aria-label="Buka menu navigasi" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- HERO -->
+  <section class="hero">
+    <span class="hero-decor d1 lantern-mark lantern-large" aria-hidden="true"></span>
+    <span class="hero-decor d2 lantern-mark lantern-large" aria-hidden="true" style="width:46px;height:60px;"></span>
+    <span class="hero-decor d3 lantern-mark" aria-hidden="true"></span>
+
+    <div class="container">
+      <p class="eyebrow">Kafe &amp; Dimsum Factory Outlet</p>
+      <h1 class="hero-title">
+        <span class="brand">Lentera</span>
+        <span class="descriptor">Dimsum Factory Outlet</span>
+      </h1>
+      <p class="rating-badge">
+        <span class="star">★ 5.0</span> · 4 ulasan Google · Kategori Kafe
+      </p>
+      <p class="lead">
+        Dimsum kukus dan goreng yang dimasak segar setiap hari, langsung dari dapur produksi kami — rasanya tetap rumahan, harganya tetap ramah di kantong.
+      </p>
+      <div class="hero-ctas">
+        <a href="#menu" class="btn btn-primary">Lihat Menu</a>
+        <a href="https://wa.me/6281234567890?text=Halo%20Lentera%2C%20saya%20mau%20pesan%20dimsum" target="_blank" rel="noopener" class="btn btn-ghost">Pesan via WhatsApp</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- MENU -->
+  <section class="menu section" id="menu">
+    <div class="container">
+      <div class="menu-header reveal">
+        <p class="eyebrow">Menu Andalan</p>
+        <h2 class="section-title">Hangat dari Kukusan, Renyah dari Wajan</h2>
+        <p class="lead" style="color:var(--muted-dark);">
+          Semua porsi bisa dine-in atau dibungkus, dan sudah lengkap dengan saus sambal andalan kami.
+        </p>
+      </div>
+
+      <div class="menu-grid">
+        <article class="menu-lantern reveal">
+          <span class="tag">Kukus</span>
+          <h3 class="name">Hakau Udang</h3>
+          <p class="portion">Isi 5 pcs</p>
+          <p class="price">Rp 18.000</p>
+        </article>
+        <article class="menu-lantern reveal">
+          <span class="tag">Kukus</span>
+          <h3 class="name">Siomay Ayam</h3>
+          <p class="portion">Isi 5 pcs</p>
+          <p class="price">Rp 15.000</p>
+        </article>
+        <article class="menu-lantern reveal">
+          <span class="tag">Kukus</span>
+          <h3 class="name">Siomay Udang</h3>
+          <p class="portion">Isi 5 pcs</p>
+          <p class="price">Rp 20.000</p>
+        </article>
+        <article class="menu-lantern reveal">
+          <span class="tag">Kukus</span>
+          <h3 class="name">Kaki Naga</h3>
+          <p class="portion">Isi 5 pcs</p>
+          <p class="price">Rp 16.000</p>
+        </article>
+        <article class="menu-lantern reveal">
+          <span class="tag">Goreng</span>
+          <h3 class="name">Lumpia Udang</h3>
+          <p class="portion">Isi 5 pcs</p>
+          <p class="price">Rp 17.000</p>
+        </article>
+        <article class="menu-lantern reveal">
+          <span class="tag">Goreng</span>
+          <h3 class="name">Pangsit Goreng</h3>
+          <p class="portion">Isi 10 pcs</p>
+          <p class="price">Rp 14.000</p>
+        </article>
+        <article class="menu-lantern reveal">
+          <span class="tag">Goreng</span>
+          <h3 class="name">Chicken Karaage</h3>
+          <p class="portion">Isi 6 pcs</p>
+          <p class="price">Rp 25.000</p>
+        </article>
+        <article class="menu-lantern reveal">
+          <span class="tag">Goreng</span>
+          <h3 class="name">Mentai Mochi</h3>
+          <p class="portion">Isi 5 pcs</p>
+          <p class="price">Rp 22.000</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="about section" id="tentang">
+    <div class="container">
+      <div class="reveal">
+        <p class="eyebrow">Tentang Kami</p>
+        <h2 class="section-title">Nyala Kecil yang Terus Membesar</h2>
+        <p>
+          Lentera mulai dari dapur rumah yang sederhana. Siomay dan hakau dikukus dalam jumlah kecil untuk tetangga dan teman dekat, semuanya memakai resep keluarga turun-temurun.
+        </p>
+        <p>
+          Sekarang Lentera tumbuh menjadi kafe sekaligus factory outlet. Kamu bisa duduk santai menikmati dimsum hangat di tempat, atau membawa pulang stok beku untuk simpanan di rumah maupun dijual kembali.
+        </p>
+        <div class="value-list">
+          <div class="value-item">
+            <h3>Segar Setiap Hari</h3>
+            <p>Adonan dibuat dan dikukus dalam batch kecil tiap pagi, tanpa bahan pengawet tambahan.</p>
+          </div>
+          <div class="value-item">
+            <h3>Harga Factory Outlet</h3>
+            <p>Dijual langsung dari dapur produksi, jadi harganya bisa lebih bersahabat untukmu.</p>
+          </div>
+          <div class="value-item">
+            <h3>Resep Rumahan</h3>
+            <p>Bumbu dan racikan tetap mengikuti resep keluarga, bukan formula instan.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="steamer-wrap reveal" aria-hidden="true">
+        <div class="steamer">
+          <span class="steam s1"></span>
+          <span class="steam s2"></span>
+          <span class="steam s3"></span>
+          <div class="steamer-basket"></div>
+          <div class="steamer-basket b2"></div>
+          <div class="steamer-basket b3"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FACTORY OUTLET -->
+  <section class="factory section" id="factory">
+    <div class="container">
+      <div class="intro reveal">
+        <p class="eyebrow">Factory Outlet</p>
+        <h2 class="section-title">Stok Beku, Langsung dari Dapur Produksi</h2>
+        <p class="lead" style="color:var(--muted-dark);">
+          Cocok untuk stok dimsum di rumah atau dijual lagi sebagai reseller. Semua dikemas vacuum dan tinggal dikukus atau digoreng kapan saja.
+        </p>
+      </div>
+
+      <div class="price-grid reveal">
+        <div class="price-card">
+          <p class="pname">Paket Coba-Coba</p>
+          <p class="pisi">Isi 20 pcs campur</p>
+          <p class="pprice">Rp 65.000</p>
+          <p class="pdesc">Cocok untuk dicicipi dulu sebelum stok lebih banyak.</p>
+        </div>
+        <div class="price-card">
+          <p class="pname">Paket Hemat</p>
+          <p class="pisi">Isi 50 pcs campur</p>
+          <p class="pprice">Rp 150.000</p>
+          <p class="pdesc">Pilihan favorit untuk stok dimsum sebulan di rumah.</p>
+        </div>
+        <div class="price-card">
+          <p class="pname">Paket Reseller</p>
+          <p class="pisi">Isi 100 pcs, harga grosir</p>
+          <p class="pprice">Rp 280.000</p>
+          <p class="pdesc">Isi bisa custom sesuai menu terlaris di tempatmu.</p>
+        </div>
+      </div>
+
+      <p class="price-note reveal">
+        Daftar harga dapat berubah sewaktu-waktu — hubungi kami untuk update terbaru dan ketentuan menjadi reseller.
+      </p>
+      <a href="https://wa.me/6281234567890?text=Halo%20Lentera%2C%20saya%20mau%20tanya%20stok%20dan%20harga%20factory%20outlet" target="_blank" rel="noopener" class="btn btn-primary reveal">Tanya Stok &amp; Harga via WhatsApp</a>
+    </div>
+  </section>
+
+  <!-- LOCATION -->
+  <section class="location section" id="lokasi">
+    <div class="container">
+      <div class="reveal">
+        <p class="eyebrow">Kunjungi Kami</p>
+        <h2 class="section-title">Datang, Duduk, Nikmati Selagi Hangat</h2>
+        <p class="address">Jl. Lentera Raya No. 8, Jakarta Selatan</p>
+        <p style="color:var(--muted-light);">Parkir tersedia di depan outlet.</p>
+
+        <div class="hours">
+          <div><span>Senin – Jumat</span><span>09.00 – 21.00</span></div>
+          <div><span>Sabtu – Minggu</span><span>09.00 – 22.00</span></div>
+        </div>
+
+        <div class="location-ctas">
+          <a href="https://wa.me/6281234567890" target="_blank" rel="noopener" class="btn btn-primary">Buka di WhatsApp</a>
+          <a href="https://instagram.com/lentera.dimsum" target="_blank" rel="noopener" class="btn btn-dark">Lihat Instagram</a>
+        </div>
+      </div>
+
+      <div class="map-illustration reveal" aria-hidden="true">
+        <div class="map-pin">
+          <span class="lantern-mark lantern-large"></span>
+          <span class="pin-label">Lentera</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-top">
+      <div>
+        <div class="footer-logo">
+          <span class="lantern-mark" aria-hidden="true"></span>
+          Lentera
+        </div>
+        <p class="footer-tagline">Dimsum hangat, harga factory outlet. Buka setiap hari.</p>
+      </div>
+      <div>
+        <h4>Navigasi</h4>
+        <ul>
+          <li><a href="#menu">Menu</a></li>
+          <li><a href="#tentang">Tentang Kami</a></li>
+          <li><a href="#factory">Factory Outlet</a></li>
+          <li><a href="#lokasi">Lokasi</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Kontak</h4>
+        <ul>
+          <li><a href="https://wa.me/6281234567890" target="_blank" rel="noopener">WhatsApp: 0812-3456-7890</a></li>
+          <li><a href="https://instagram.com/lentera.dimsum" target="_blank" rel="noopener">@lentera.dimsum</a></li>
+          <li>Jl. Lentera Raya No. 8, Jakarta Selatan</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>★ 5.0 dari 4 ulasan Google · Kategori Kafe</span>
+      <span>© 2026 Lentera Dimsum Factory Outlet</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Sticky nav background on scroll
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 40);
+  });
+
+  // Mobile menu toggle
+  const menuToggle = document.getElementById('menuToggle');
+  const navLinks = document.getElementById('navLinks');
+  menuToggle.addEventListener('click', () => {
+    const isOpen = navLinks.classList.toggle('open');
+    menuToggle.classList.toggle('open', isOpen);
+    menuToggle.setAttribute('aria-expanded', isOpen);
+  });
+  navLinks.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      navLinks.classList.remove('open');
+      menuToggle.classList.remove('open');
+      menuToggle.setAttribute('aria-expanded', false);
+    });
+  });
+
+  // Reveal on scroll
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduceMotion && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  } else {
+    document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+  }
+</script>
+
+</body>
+</html>
